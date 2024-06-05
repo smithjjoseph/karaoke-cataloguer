@@ -96,20 +96,33 @@ class App(ctk.CTk):
 
 
     def _remember(self) -> None:
+        title = self._get_tb(self.txt_title).strip()
         tracks = self._get_tb(self.txt_tracks)
         if not title or not tracks:
             self._warn("Missing either track list or title.")
             return
         tracks = list(filter(None, tracks.split('\n')))
 
+        # Repeated insertion to df is inefficient, O(n^2)
+        # Append using list instead, O(n), then concatenate
+        extension = []
         for line in tracks:
-            num, sep, title = line.partition('.')
+            num, sep, track = line.partition('.')
+
             if not sep:
                 self._warn("Track list is not properly formatted.")
                 return
 
-            self.data.append(num, title, self.current_img, title)
+            extension.append([num.strip(), track.strip(), 
+                              self.current_img, title])
 
+        # TODO: Check for duplicate track_num, cd_num
+        #       If exists, replace values with current
+        # https://stackoverflow.com/questions/24036911/how-to-update-values-in-a-specific-row-in-a-python-pandas-dataframe
+
+        addition = pd.DataFrame(extension, columns=HEADINGS)
+        self.data = pd.concat([self.data, addition])
+        self.data = self.data.reset_index(drop=True)
 
 
     def _recall(self) -> None:
@@ -125,6 +138,7 @@ class App(ctk.CTk):
         self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
         # Call _remember
+        # Call _clear
         # Call _recall
 
 
@@ -135,6 +149,7 @@ class App(ctk.CTk):
         self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
         # Call _remember
+        # Call _clear
         # Call _recall
 
 
@@ -165,5 +180,7 @@ class App(ctk.CTk):
 
 
 if __name__ == '__main__':
+    pd.options.display.max_colwidth = 20
+
     app = App()
     app.run()
