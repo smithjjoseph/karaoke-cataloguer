@@ -103,7 +103,7 @@ class App(ctk.CTk):
             return
         tracks = list(filter(None, tracks.split('\n')))
 
-        # Repeated insertion to df is inefficient, O(n^2)
+        # Repeated insertion to a df is inefficient, O(n^2)
         # Append using list instead, O(n), then concatenate
         extension = []
         for line in tracks:
@@ -116,16 +116,18 @@ class App(ctk.CTk):
             extension.append([num.strip(), track.strip(), 
                               self.current_img, title])
 
-        # TODO: Check for duplicate track_num, cd_num
-        #       If exists, replace values with current
-        # https://stackoverflow.com/questions/24036911/how-to-update-values-in-a-specific-row-in-a-python-pandas-dataframe
-
         addition = pd.DataFrame(extension, columns=HEADINGS)
+
+        # If duplicate track_num & cd_num entires exist, delete old values
+        self.data = self.data.drop(
+            self.data[self.data.cd_num == self.current_img].index)
+
         self.data = pd.concat([self.data, addition])
         self.data = self.data.reset_index(drop=True)
 
 
     def _recall(self) -> None:
+        # TODO:
         # Check if there is data for this image
         # Load the data if possible
         raise NotImplementedError()
