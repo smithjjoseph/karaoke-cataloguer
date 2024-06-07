@@ -31,9 +31,10 @@ class OCR:
         # Image might need to be resized otherwise it doesn't fully display
         img_height, *_ = raw_img.shape
         monitor_height = [m.height for m in get_monitors() if m.is_primary][0]
+        ratio = 1
         if img_height > monitor_height:
             ratio = monitor_height/img_height - 0.05
-            mini_img = cv2.resize(raw_img, None, fx=ratio, fy=ratio)
+        mini_img = cv2.resize(raw_img, None, fx=ratio, fy=ratio)
 
         roi = cv2.selectROI(mini_img)
         roi_crop = mini_img[int(roi[1]):int(roi[1]+roi[3]),
