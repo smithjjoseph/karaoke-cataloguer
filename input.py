@@ -18,7 +18,9 @@ from pathlib import Path
 from PIL import Image
 
 IMAGE_PATH: Path = Path(__file__, '..', 'img').resolve()
-IMAGE_FILES: List[str] = list(IMAGE_PATH.glob('*'))
+IMAGE_FILES: List[Path] = list(IMAGE_PATH.glob('*'))
+DISC_NUMS: List[str] = [str(file.name)[:-4] for file in IMAGE_FILES]
+print(DISC_NUMS)
 WINDOW_SIZE: Tuple[int, int] = (1000, 640)
 HEADINGS = ['track_num', 'track_title', 'cd_num', 'cd_title']
 
@@ -56,7 +58,12 @@ class App(ctk.CTk):
         self.frame_img.grid_rowconfigure(0, weight=1)
         self.frame_img.grid_columnconfigure(0, weight=1)
         self.frame_img.grid(row=0, column=0, padx=(20,10), pady=(20,10))
-        self.lbl_CD = ctk.CTkLabel(self.frame_img, text=f"1/{self.len_imgs}", image=self.cd_imgs[0], compound="top", corner_radius=100)
+        self.lbl_CD = ctk.CTkLabel(self.frame_img, 
+                                   text=f"Disc {DISC_NUMS[self.current_img]}\t"
+                                        f"1/{self.len_imgs}", 
+                                   image=self.cd_imgs[0], 
+                                   compound="top", 
+                                   corner_radius=100)
         self.lbl_CD.grid(row=0, column=0, padx=(10,10), pady=(10,10))
 
         # Image Buttons Frame
@@ -95,13 +102,22 @@ class App(ctk.CTk):
         messagebox.showinfo("Error", msg, icon="warning", parent=None)
 
 
-    def _remember(self) -> None:
+    def _remember(self) -> bool:
+        """Stores current text box contents in dataframe
+
+        :return: Whether or not there was a failure saving contents
+                 True if there was an actionable failure
+                 False if there was not an actionable failure
+        :rtype: bool
+        """
         title = self._get_tb(self.txt_title)
         tracks = self._get_tb(self.txt_tracks)
         if not title or not tracks:
-            return
+            # Assumes the user is skipping past the CD
+            return False
         title = title.strip()
         tracks = list(filter(None, tracks.split('\n')))
+        cd_num = DISC_NUMS[self.current_img]
 
         # Repeated insertion to a df is inefficient, O(n^2)
         # Append using list instead, O(n), then concatenate
@@ -111,19 +127,21 @@ class App(ctk.CTk):
 
             if not sep:
                 self._warn("Track list is not properly formatted.")
-                return
+                return True
 
             extension.append([num.strip(), track.strip(),
-                              self.current_img, title])
+                              cd_num, title])
 
         addition = pd.DataFrame(extension, columns=HEADINGS)
 
         # If duplicate track_num & cd_num entires exist, delete old values
         self.data = self.data.drop(
-            self.data[self.data.cd_num == self.current_img].index)
+            self.data[self.data.cd_num == cd_num].index)
 
         self.data = pd.concat([self.data, addition])
         self.data = self.data.reset_index(drop=True)
+
+        return False
 
 
     def _clear(self) -> None:
@@ -132,8 +150,9 @@ class App(ctk.CTk):
 
 
     def _recall(self) -> None:
+        cd_num = DISC_NUMS[self.current_img]
         # Pandas queries for CD title and track information
-        query = self.data[self.data["cd_num"] == self.current_img]
+        query = self.data[self.data["cd_num"] == cd_num]
         title = query['cd_title']
         track_query = query[['track_num', 'track_title']]
 
@@ -157,12 +176,14 @@ class App(ctk.CTk):
         if self.current_img <= 0:
             return
 
-        self._remember()
+        if self._remember():
+            return
         self._clear()
 
         self.current_img -= 1
         self._recall()
-        self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
+        self.lbl_CD.configure(text=f"Disc {DISC_NUMS[self.current_img]}\t"
+                                   f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
 
 
@@ -170,12 +191,14 @@ class App(ctk.CTk):
         if self.current_img >= self.len_imgs-1:
             return
 
-        self._remember()
+        if self._remember():
+            return
         self._clear()
 
         self.current_img += 1
         self._recall()
-        self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
+        self.lbl_CD.configure(text=f"Disc {DISC_NUMS[self.current_img]}\t"
+                                   f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
 
 
@@ -200,8 +223,9 @@ class App(ctk.CTk):
 
     def _submit_func(self) -> None:
         # Ensure current CD is added to df
-        self._remember()
-        # TODO: Convert DataFrame to csv/json and save
+        if self._remember():
+            return
+        # TODO: Convert DataFrame to csv/json and save for use in output.py
         raise NotImplementedError()
 
 
