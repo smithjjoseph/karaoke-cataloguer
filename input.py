@@ -96,11 +96,11 @@ class App(ctk.CTk):
 
 
     def _remember(self) -> None:
-        title = self._get_tb(self.txt_title).strip()
+        title = self._get_tb(self.txt_title)
         tracks = self._get_tb(self.txt_tracks)
         if not title or not tracks:
-            self._warn("Missing either track list or title.")
             return
+        title = title.strip()
         tracks = list(filter(None, tracks.split('\n')))
 
         # Repeated insertion to a df is inefficient, O(n^2)
@@ -113,7 +113,7 @@ class App(ctk.CTk):
                 self._warn("Track list is not properly formatted.")
                 return
 
-            extension.append([num.strip(), track.strip(), 
+            extension.append([num.strip(), track.strip(),
                               self.current_img, title])
 
         addition = pd.DataFrame(extension, columns=HEADINGS)
@@ -126,33 +126,57 @@ class App(ctk.CTk):
         self.data = self.data.reset_index(drop=True)
 
 
+    def _clear(self) -> None:
+        self.txt_title.delete('1.0', ctk.END)
+        self.txt_tracks.delete('1.0', ctk.END)
+
+
     def _recall(self) -> None:
-        # TODO:
-        # Check if there is data for this image
-        # Load the data if possible
-        raise NotImplementedError()
+        # Pandas queries for CD title and track information
+        query = self.data[self.data["cd_num"] == self.current_img]
+        title = query['cd_title']
+        track_query = query[['track_num', 'track_title']]
+
+        # Return if there is no track listing for current CD
+        if title.empty or track_query.empty:
+            return
+
+        title = title.values[0]
+        track_list = track_query.values
+        tracks = ''
+        # Format track information in string
+        for num, track in track_list:
+            tracks += f"{num}.{track}\n"
+
+        # Put formatted data into entries
+        self.txt_title.insert(ctk.END, title)
+        self.txt_tracks.insert(ctk.END, tracks)
 
 
     def _prev_func(self) -> None:
         if self.current_img <= 0:
             return
+
+        self._remember()
+        self._clear()
+
         self.current_img -= 1
+        self._recall()
         self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
-        # Call _remember
-        # Call _clear
-        # Call _recall
 
 
     def _next_func(self) -> None:
         if self.current_img >= self.len_imgs-1:
             return
+
+        self._remember()
+        self._clear()
+
         self.current_img += 1
+        self._recall()
         self.lbl_CD.configure(text=f"{self.current_img+1}/{self.len_imgs}")
         self.lbl_CD.configure(image=self.cd_imgs[self.current_img])
-        # Call _remember
-        # Call _clear
-        # Call _recall
 
 
     def _title_func(self) -> None:
@@ -175,10 +199,10 @@ class App(ctk.CTk):
 
 
     def _submit_func(self) -> None:
-        # Add current CD to df
+        # Ensure current CD is added to df
         self._remember()
-        # Convert DataFrame to csv/json and save
-        # raise NotImplementedError()
+        # TODO: Convert DataFrame to csv/json and save
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':
