@@ -59,8 +59,9 @@ class OCR:
 
 
 if __name__ == '__main__':
-    IMG_PATH: str = './img/karaoke.jpg'
+    IMG_PATH: str = './img/10.jpg'
 
     ocr: OCR = OCR()
     text: List[str] = ocr.identify(IMG_PATH)
+    print('OCR example output:')
     print('\n' + '\n'.join(text))
