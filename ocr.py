@@ -46,16 +46,20 @@ class OCR:
 
     def recognise(self, img: np.ndarray) -> List[str]:
         result = self.ocr.ocr(img, det=True, cls=False)
-        text = [text[1][0] for text in [line for line in result[0]]]
+        if result[0] is None:
+            return None
+        else:
+            return [text[1][0] for text in [line for line in result[0]]]
 
-        return text
 
 
     def identify(self, img_path: str) -> List[str]:
         roi = self.crop(img_path)
-        text = self.recognise(roi)
-
-        return text
+        # Handle None return from OCR
+        if text := self.recognise(roi):
+            return text
+        else:
+            return None
 
 
 if __name__ == '__main__':
@@ -63,5 +67,6 @@ if __name__ == '__main__':
 
     ocr: OCR = OCR()
     text: List[str] = ocr.identify(IMG_PATH)
-    print('OCR example output:')
-    print('\n' + '\n'.join(text))
+    if text:
+        print('OCR example output:')
+        print('\n' + '\n'.join(text))

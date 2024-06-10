@@ -20,7 +20,6 @@ from PIL import Image
 IMAGE_PATH: Path = Path(__file__, '..', 'img').resolve()
 IMAGE_FILES: List[Path] = list(IMAGE_PATH.glob('*'))
 DISC_NUMS: List[str] = [str(file.name)[:-4] for file in IMAGE_FILES]
-print(DISC_NUMS)
 WINDOW_SIZE: Tuple[int, int] = (1000, 640)
 HEADINGS = ['track_num', 'track_title', 'cd_num', 'cd_title']
 
@@ -38,7 +37,7 @@ class App(ctk.CTk):
         self.data = pd.DataFrame(columns=HEADINGS)
 
 
-    def _prepare_imgs(self):
+    def _prepare_imgs(self) -> None:
         self.current_img = 0
         self.cd_imgs = []
         for img in IMAGE_FILES:
@@ -47,7 +46,7 @@ class App(ctk.CTk):
         self.len_imgs = len(self.cd_imgs)
 
 
-    def _window_setup(self):
+    def _window_setup(self) -> None:
         self.title('Karaoke CD Logger')
         self.geometry(f"{WINDOW_SIZE[0]}x{WINDOW_SIZE[1]}")
         self.grid_rowconfigure(1, weight=1)
@@ -89,13 +88,13 @@ class App(ctk.CTk):
         self.txt_title.grid(row=1, column=1, padx=(10,20), pady=(10,20), sticky="nsew")
 
 
-    def run(self):
+    def run(self) -> None:
         self.mainloop()
 
 
-    def _get_tb(self, tb: ctk.CTkTextbox):
+    def _get_tb(self, tb: ctk.CTkTextbox) -> str | None:
         txt = tb.get('1.0', 'end-1c')
-        return None if txt == '' else txt
+        return txt or None
 
 
     def _warn(self, msg):
@@ -106,15 +105,15 @@ class App(ctk.CTk):
         """Stores current text box contents in dataframe
 
         :return: Whether or not there was a failure saving contents
-                 True if there was an actionable failure
-                 False if there was not an actionable failure
+                 False if there was an actionable failure
+                 True if there was not an actionable failure
         :rtype: bool
         """
         title = self._get_tb(self.txt_title)
         tracks = self._get_tb(self.txt_tracks)
         if not title or not tracks:
             # Assumes the user is skipping past the CD
-            return False
+            return True
         title = title.strip()
         tracks = list(filter(None, tracks.split('\n')))
         cd_num = DISC_NUMS[self.current_img]
@@ -127,7 +126,7 @@ class App(ctk.CTk):
 
             if not sep:
                 self._warn("Track list is not properly formatted.")
-                return True
+                return False
 
             extension.append([num.strip(), track.strip(),
                               cd_num, title])
@@ -141,7 +140,7 @@ class App(ctk.CTk):
         self.data = pd.concat([self.data, addition])
         self.data = self.data.reset_index(drop=True)
 
-        return False
+        return True
 
 
     def _clear(self) -> None:
@@ -176,7 +175,7 @@ class App(ctk.CTk):
         if self.current_img <= 0:
             return
 
-        if self._remember():
+        if not self._remember():
             return
         self._clear()
 
@@ -191,7 +190,7 @@ class App(ctk.CTk):
         if self.current_img >= self.len_imgs-1:
             return
 
-        if self._remember():
+        if not self._remember():
             return
         self._clear()
 
@@ -204,18 +203,26 @@ class App(ctk.CTk):
 
     def _title_func(self) -> None:
         title = self.ocr.identify(str(IMAGE_FILES[self.current_img]))
+        if not title:
+            return
+
+        # Replace any old title text with the new text from OCR
         self.txt_title.delete(1.0, ctk.END)
         self.txt_title.insert(1.0, ' '.join(title))
 
 
     def _tracks_func(self) -> None:
         tracks = self.ocr.identify(str(IMAGE_FILES[self.current_img]))
+        if not tracks:
+            return
 
+        # Attempt to pretty parse text from OCR
         # There are definitely issues with the logic here but who cares
         tracks = ' '.join(tracks)
         tracks = re.sub('(?<= )(\d+[\.:])', '\n\g<0>', tracks)
         track_list = [track.strip() for track in tracks.splitlines()]
 
+        # Replace any old track text with the new text from OCR
         self.txt_tracks.delete(1.0, ctk.END)
         for i, track in enumerate(track_list):
             self.txt_tracks.insert(f"{i+1}.0", track + '\n')
@@ -223,7 +230,7 @@ class App(ctk.CTk):
 
     def _submit_func(self) -> None:
         # Ensure current CD is added to df
-        if self._remember():
+        if not self._remember():
             return
         # TODO: Convert DataFrame to csv/json and save for use in output.py
         raise NotImplementedError()
