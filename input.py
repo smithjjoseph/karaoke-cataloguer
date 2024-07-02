@@ -7,8 +7,6 @@
 """
 
 import re
-import json
-import csv
 import pandas as pd
 import customtkinter as ctk
 from tkinter import messagebox
@@ -17,6 +15,7 @@ from typing import List, Tuple
 from pathlib import Path
 from PIL import Image
 
+DATA_FILE: Path = Path(__file__, '..', 'data.csv').resolve()
 IMAGE_PATH: Path = Path(__file__, '..', 'img').resolve()
 IMAGE_FILES: List[Path] = list(IMAGE_PATH.glob('*'))
 DISC_NUMS: List[str] = [str(file.name)[:-4] for file in IMAGE_FILES]
@@ -33,8 +32,14 @@ class App(ctk.CTk):
         self._prepare_imgs()
         self._window_setup()
 
+        # Initialise OCR
         self.ocr = OCR()
-        self.data = pd.DataFrame(columns=HEADINGS)
+        # Load data from CSV if exists
+        if DATA_FILE.is_file():
+            self.data = pd.read_csv('./data.csv', dtype=str)
+            self._recall()
+        else:
+            self.data = pd.DataFrame(columns=HEADINGS)
 
 
     def _prepare_imgs(self) -> None:
@@ -232,8 +237,8 @@ class App(ctk.CTk):
         # Ensure current CD is added to df
         if not self._remember():
             return
-        # TODO: Convert DataFrame to csv/json and save for use in output.py
-        raise NotImplementedError()
+        # Convert DataFrame to csv/json and save for use in output.py
+        self.data.to_csv(DATA_FILE, sep=',', index=False, encoding='utf-8')
 
 
 if __name__ == '__main__':
