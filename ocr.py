@@ -24,17 +24,22 @@ class OCR:
         self.ocr = PaddleOCR(lang="en", show_log=False)
 
 
-    @staticmethod
-    def crop(img_path: str) -> np.ndarray:
+    def _resize(img_path: str) -> np.ndarray:
         raw_img = cv2.imread(img_path)
 
         # Image might need to be resized otherwise it doesn't fully display
         img_height, *_ = raw_img.shape
         monitor_height = [m.height for m in get_monitors() if m.is_primary][0]
-        ratio = 1
         if img_height > monitor_height:
             ratio = monitor_height/img_height - 0.05
-        mini_img = cv2.resize(raw_img, None, fx=ratio, fy=ratio)
+        else:
+            ratio = 1
+        return cv2.resize(raw_img, None, fx=ratio, fy=ratio)
+
+
+    @staticmethod
+    def crop(img_path: str) -> np.ndarray:
+        mini_img = OCR._resize(img_path)
 
         roi = cv2.selectROI(mini_img)
         roi_crop = mini_img[int(roi[1]):int(roi[1]+roi[3]),
@@ -42,6 +47,15 @@ class OCR:
         cv2.destroyAllWindows()
 
         return roi_crop
+    
+
+    @staticmethod
+    def display(img_path: str) -> None:
+        mini_img = OCR._resize(img_path)
+
+        cv2.imshow('Image Preview', mini_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
     def recognise(self, img: np.ndarray) -> List[str]:

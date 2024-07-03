@@ -69,6 +69,7 @@ class App(ctk.CTk):
                                    compound="top", 
                                    corner_radius=100)
         self.lbl_CD.grid(row=0, column=0, padx=(10,10), pady=(10,10))
+        self.lbl_CD.bind("<Button-1>", self._lbl_CD_func)
 
         # Image Buttons Frame
         self.frame_btn = ctk.CTkFrame(self)
@@ -174,6 +175,15 @@ class App(ctk.CTk):
         # Put formatted data into entries
         self.txt_title.insert(ctk.END, title)
         self.txt_tracks.insert(ctk.END, tracks)
+
+
+    def _lbl_CD_func(self, _) -> None:
+        """Handles displaying a larger image when the image label is clicked
+
+        :param _: Handles superfluous information supplied by tk
+        :type _: dict
+        """
+        OCR.display(str(IMAGE_FILES[self.current_img]))
 
 
     def _prev_func(self) -> None:
