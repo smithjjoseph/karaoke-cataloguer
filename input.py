@@ -9,18 +9,18 @@
 import re
 import pandas as pd
 import customtkinter as ctk
-from tkinter import messagebox
 from ocr import OCR
 from typing import List, Tuple
 from pathlib import Path
+from tkinter import messagebox
 from PIL import Image
 
-DATA_FILE: Path = Path(__file__, '..', 'data.csv').resolve()
 IMAGE_PATH: Path = Path(__file__, '..', 'img').resolve()
 IMAGE_FILES: List[Path] = list(IMAGE_PATH.glob('*'))
-DISC_NUMS: List[str] = [str(file.name)[:-4] for file in IMAGE_FILES]
 WINDOW_SIZE: Tuple[int, int] = (1000, 640)
-HEADINGS = ['track_num', 'track_title', 'cd_num', 'cd_title']
+DISC_NUMS: List[str] = [str(file.name)[:-4] for file in IMAGE_FILES]
+DATA_FILE: Path = Path(__file__, '..', 'data.csv').resolve()
+HEADINGS: Tuple[str] = ('track_num', 'track_title', 'cd_num', 'cd_title')
 
 ctk.set_appearance_mode('system')
 ctk.set_default_color_theme('blue')
@@ -62,11 +62,11 @@ class App(ctk.CTk):
         self.frame_img.grid_rowconfigure(0, weight=1)
         self.frame_img.grid_columnconfigure(0, weight=1)
         self.frame_img.grid(row=0, column=0, padx=(20,10), pady=(20,10))
-        self.lbl_CD = ctk.CTkLabel(self.frame_img, 
+        self.lbl_CD = ctk.CTkLabel(self.frame_img,
                                    text=f"Disc {DISC_NUMS[self.current_img]}\t"
-                                        f"1/{self.len_imgs}", 
-                                   image=self.cd_imgs[0], 
-                                   compound="top", 
+                                        f"1/{self.len_imgs}",
+                                   image=self.cd_imgs[0],
+                                   compound="top",
                                    corner_radius=100)
         self.lbl_CD.grid(row=0, column=0, padx=(10,10), pady=(10,10))
         self.lbl_CD.bind("<Button-1>", self._lbl_CD_func)
