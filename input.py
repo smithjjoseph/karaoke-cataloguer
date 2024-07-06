@@ -12,7 +12,7 @@ import customtkinter as ctk
 from ocr import OCR
 from typing import List, Tuple
 from pathlib import Path
-from tkinter import messagebox
+from tkinter import Event, messagebox
 from PIL import Image
 
 IMAGE_PATH: Path = Path(__file__, '..', 'img').resolve()
@@ -103,7 +103,7 @@ class App(ctk.CTk):
         return txt or None
 
 
-    def _warn(self, msg):
+    def _warn(self, msg: str):
         messagebox.showinfo("Error", msg, icon="warning", parent=None)
 
 
@@ -177,7 +177,7 @@ class App(ctk.CTk):
         self.txt_tracks.insert(ctk.END, tracks)
 
 
-    def _lbl_CD_func(self, _) -> None:
+    def _lbl_CD_func(self, _: Event) -> None:
         """Handles displaying a larger image when the image label is clicked
 
         :param _: Handles superfluous information supplied by tk
