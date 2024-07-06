@@ -10,7 +10,7 @@ import re
 import pandas as pd
 import customtkinter as ctk
 from ocr import OCR
-from typing import List, Tuple
+from typing import Union, List, Tuple
 from pathlib import Path
 from tkinter import Event, messagebox
 from PIL import Image
@@ -98,7 +98,7 @@ class App(ctk.CTk):
         self.mainloop()
 
 
-    def _get_tb(self, tb: ctk.CTkTextbox) -> str | None:
+    def _get_tb(self, tb: ctk.CTkTextbox) -> Union[str, None]:
         txt = tb.get('1.0', 'end-1c')
         return txt or None
 
