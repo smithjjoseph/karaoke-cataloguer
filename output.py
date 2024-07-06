@@ -12,17 +12,17 @@ import customtkinter as ctk
 from tkinter import ttk
 from typing import Tuple
 from pathlib import Path
-from tkinter import messagebox
+from tkinter import Event, messagebox
 from numpy import column_stack
 
 ctk.set_appearance_mode('system')
 ctk.set_default_color_theme('blue')
 
-WINDOW_SIZE: Tuple[int, int] = (640, 1000)
+WINDOW_SIZE: Tuple[int, int] = (660, 1000)
 DATA_FILE: Path = Path(__file__, '..', 'data.csv').resolve()
 HEADINGS: Tuple[str] = ('track_num', 'track_title', 'cd_num', 'cd_title')
-HEAD_PROPS: Tuple[Tuple[str, int]] = (('Track No.', 80), ('Track Title', 240),
-                                      ('CD No.', 80), ('CD Title', 240))
+HEAD_PROPS: Tuple[Tuple[str, int]] = (('Track No.', 70), ('Track Title', 249),
+                                      ('CD No.', 70), ('CD Title', 249))
 
 
 # TODO: Look into ttk styling for treeview
@@ -41,6 +41,8 @@ class App(ctk.CTk):
             messagebox.showinfo("Error", message="No data file found",
                                 icon="error", parent=None)
             exit(-1)
+        
+        self._display_results(None)
 
 
     def _window_setup(self) -> None:
@@ -49,22 +51,17 @@ class App(ctk.CTk):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # TODO: Create a binding to link entry to _display_results()
         self.entry = ctk.CTkEntry(self)
         self.entry.grid(row=0, column=0, sticky='EW', padx=(10,10), pady=(10,10))
+        # Create a binding to set _display_results() as a callback
+        self.entry.bind('<KeyRelease>', self._display_results)
         # Setup tree view for output table
         self.output = ttk.Treeview(self, columns=tuple(HEADINGS))
         self.output['show'] = 'headings'
         for id, (heading, size) in zip(HEADINGS, HEAD_PROPS):
             self.output.column(id, width=size, anchor='center')
             self.output.heading(id, text=heading)
-
         self.output.grid(row=1, column=0, sticky='NESW', padx=(10,10), pady=(10,10))
-        self.output.insert('', 'end', str(1))
-        self.output.set(str(1), HEADINGS[0], '1')
-        self.output.set(str(1), HEADINGS[1], 'Takin\' Care Of Business')
-        self.output.set(str(1), HEADINGS[2], int('07'))
-        self.output.set(str(1), HEADINGS[3], 'Sweet Georgia Brown SGB1001')
 
 
     def _get_results(self, search: str) -> pd.DataFrame:
@@ -76,12 +73,24 @@ class App(ctk.CTk):
         return self.data.loc[mask.any(axis=1)]
 
 
-    def _display_results(self) -> None:
-        # TODO: Replace with binding's contents
-        search = 'all'
+    def _display_results(self, _: Event) -> None:
+        # Get results based on entry
+        search = self.entry.get()
+        if search:
+            res = self._get_results(search)
+        else:
+            res = self.data
 
-        self._get_results(search)
-        # TODO: Display results using sample input above in _window_setup()
+        # Empty the treeview
+        self.output.delete(*self.output.get_children())
+
+        # Populate rows in treeview with found data
+        for row in res.itertuples():
+            self.output.insert('', 'end', row.Index)
+            self.output.set(row.Index, HEADINGS[0], row.track_num)
+            self.output.set(row.Index, HEADINGS[1], row.track_title)
+            self.output.set(row.Index, HEADINGS[2], int(row.cd_num))
+            self.output.set(row.Index, HEADINGS[3], row.cd_title)
 
 
     def run(self):
@@ -93,5 +102,3 @@ if __name__ == '__main__':
 
     app = App()
     app.run()
-
-    print(app._get_results(search='all'))
