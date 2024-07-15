@@ -6,6 +6,8 @@ A GUI entry point for selecting between input and output applications
 
 ![Main Sample Image Missing!](./assets/main.png "Main Sample Image")
 
+Note: It is a known issue that using multiple CTk instances creates some rubbish output in the terminal - this does not affect usage of the GUI
+
 ## input.py
 A GUI for inputting CD titles and tracks into the karaoke database
 
