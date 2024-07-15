@@ -30,7 +30,10 @@ HEAD_PROPS: Tuple[Tuple[str, int]] = (('Track No.', 70), ('Track Title', 249),
 
 
 class App(ctk.CTk):
-    def __init__(self) -> None:
+    def __init__(self, parent:ctk.CTk=None) -> None:
+        if parent:
+            parent.destroy()
+
         super().__init__()
         self._window_setup()
 

@@ -39,13 +39,13 @@ class App(ctk.CTk):
 
     def _input_app(self):
         import input
-        mode = input.App()
+        mode = input.App(parent=self)
         mode.run()
 
 
     def _output_app(self):
         import output
-        mode = output.App()
+        mode = output.App(parent=self)
         mode.run()
 
 

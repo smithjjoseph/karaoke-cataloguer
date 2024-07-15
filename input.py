@@ -27,7 +27,10 @@ ctk.set_default_color_theme('blue')
 
 
 class App(ctk.CTk):
-    def __init__(self) -> None:
+    def __init__(self, parent:ctk.CTk=None) -> None:
+        if parent:
+            parent.destroy()
+
         super().__init__()
         self._prepare_imgs()
         self._window_setup()
