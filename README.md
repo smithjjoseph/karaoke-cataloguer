@@ -4,7 +4,7 @@ Applications for cataloguing karaoke CDs
 ## main.py
 A GUI entry point for selecting between input and output applications
 
-*WIP: Add image*
+![Main Sample Image Missing!](./assets/main.png "Main Sample Image")
 
 ## input.py
 A GUI for inputting CD titles and tracks into the karaoke database
@@ -27,7 +27,7 @@ A GUI for easily finding CD titles and tracks in the karaoke database
 - Tracks can be searched through the entry at the top of the window
 - Results will be displayed in the table below
 
-*WIP: Add image*
+![Output Sample Image Missing!](./assets/output.png "Output Sample Image")
 
 ## ocr.py
 Helper class for OCR related functionality
