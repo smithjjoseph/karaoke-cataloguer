@@ -7,11 +7,8 @@
 
 import customtkinter as ctk
 from typing import Tuple
-from tkinter import messagebox
 
 WINDOW_SIZE: Tuple[int, int] = (600, 300)
-
-mode = None
 
 ctk.set_appearance_mode('system')
 ctk.set_default_color_theme('blue')
@@ -41,31 +38,17 @@ class App(ctk.CTk):
 
 
     def _input_app(self):
-        global mode
-        mode = 'input'
-        app.destroy()
+        import input
+        mode = input.App()
+        mode.run()
 
 
     def _output_app(self):
-        global mode
-        mode = 'output'
-        app.destroy()
+        import output
+        mode = output.App()
+        mode.run()
 
 
 if __name__ == '__main__':
     app = App()
     app.mainloop()
-
-    # Call requested application outside of button callback due to tkinter
-    #  invalid command issues
-    if mode == 'input':
-        import input
-        req_app = input.App()
-    elif mode == 'output':
-        import output
-        req_app = output.App()
-    else:
-        # Assumes user exited out of program
-        exit(0)
-
-    req_app.run()
